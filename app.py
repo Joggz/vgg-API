@@ -142,6 +142,16 @@ def get_projects():
   all_projects = projects_schema.dump(fetch_projects)
   return jsonify(all_projects)
 
+# get single project
+@app.route('/api/projects/<projectid>', methods=['GET'])
+def get_project(projectid):
+  fetch_project = Projects.query.get(projectid)
+
+  if not fetch_project:
+    raise ValidationError('User does not exist... please sign up!!!')
+  return project_schema.jsonify(fetch_project)
+
+
 #Run server
 if __name__ == '__main__':
   app.run(debug=True)
