@@ -178,17 +178,23 @@ def update_profile(projectid):
   completed = request.json['completed']
 
   project.completed = completed
-  
+
   db.session.commit()
 
   return project_schema.jsonify(project)
 
 #delete a particular project
-# @app.route('/api/projects/<projectid>', methods=['DELETE'])
-# def delete_profile(projectid):
+@app.route('/api/projects/<projectid>', methods=['DELETE'])
+def delete_profile(projectid):
+  project = Projects.query.get(projectid)
 
+  if not project:
+    raise ValidationError('project has previously been deleted')
 
-#   return ""
+  db.session.delete(project)
+  db.session.commit()
+
+  return project_schema.jsonify(project)
 
 
 
