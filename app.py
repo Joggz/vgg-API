@@ -152,6 +152,41 @@ def get_project(projectid):
   return project_schema.jsonify(fetch_project)
 
 
+
+@app.route('/api/projects/<projectid>', methods=['PUT'])
+def update_project(projectid):
+
+  project = Projects.query.get(projectid)
+
+  name = request.json['name']
+  description = request.json['description']
+  completed = request.json['completed']
+
+  project.name = name
+  project.description = description 
+  project.completed = completed
+
+  db.session.commit()
+
+  return project_schema.jsonify(project)
+
+#update completed column
+# @app.route('/api/projects/<projectid>', methods=['PATCH'])
+# def update_profile(projectid):
+
+#   return ""
+
+#delete a particular project
+# @app.route('/api/projects/<projectid>', methods=['DELETE'])
+# def delete_profile(projectid):
+
+
+#   return ""
+
+
+
+
+
 #Run server
 if __name__ == '__main__':
   app.run(debug=True)
