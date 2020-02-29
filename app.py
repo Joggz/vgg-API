@@ -170,11 +170,18 @@ def update_project(projectid):
 
   return project_schema.jsonify(project)
 
-#update completed column
-# @app.route('/api/projects/<projectid>', methods=['PATCH'])
-# def update_profile(projectid):
+# update completed column
+@app.route('/api/projects/<projectid>', methods=['PATCH'])
+def update_profile(projectid):
+  project = Projects.query.get(projectid)
 
-#   return ""
+  completed = request.json['completed']
+
+  project.completed = completed
+  
+  db.session.commit()
+
+  return project_schema.jsonify(project)
 
 #delete a particular project
 # @app.route('/api/projects/<projectid>', methods=['DELETE'])
