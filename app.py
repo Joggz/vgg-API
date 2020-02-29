@@ -55,8 +55,8 @@ class ProjectSchema(ma.Schema):
   class Meta:
     fields = ('id', 'name', 'description', 'completed')
 
-product_schema = ProjectSchema()
-products_schema = ProjectSchema(many=True)
+project_schema = ProjectSchema()
+projects_schema = ProjectSchema(many=True)
 
 class Actions(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -135,7 +135,12 @@ def create_project():
   return product_schema.jsonify(new_project)
 
 
-
+# get all projects
+@app.route('/api/projects', methods=['GET'])
+def get_projects():
+  fetch_projects = Projects.query.all()
+  all_projects = projects_schema.dump(fetch_projects)
+  return jsonify(all_projects)
 
 #Run server
 if __name__ == '__main__':
