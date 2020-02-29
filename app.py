@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
 import os
 
 #init app
@@ -10,6 +12,7 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 #DB
+app.config['SECRET_KEY'] = 'learning'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -72,6 +75,27 @@ def create_user():
 
   
   return user_schema.jsonify(new_user)
+
+
+@app.route('/api/users/auth', methods=['POST'])
+def get_auth():
+  auth = request.authorization
+
+  if not auth or not auth.username or not auth.password:
+    return make_response('Could not Verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!!'})
+
+  user = User.query.filter_by(username=auth.username).first()
+  
+  if not user:
+    return jsonify({'error' : " user doesnt exist on the database"})
+
+  if check_password_hash(user.password, auth.password):
+   token = jwt.encode({'_id' : user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'])
+
+  return jsonify({'token' : token.decode('UTF-8')})
+
+  return make_response('Could not Verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!!'})
+
 
 #Run server
 if __name__ == '__main__':
