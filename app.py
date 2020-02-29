@@ -40,10 +40,23 @@ users_schema = UserSchema(many=True)
 
 class Projects(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String, unique=True, nullable=False)
+  name = db.Column(db.String(30), unique=True, nullable=False)
   description = db.Column(db.String(80), nullable=False )
   completed = db.Column(db.Boolean)
   actions = db.relationship('Actions', backref='project')
+
+  def __init__(self, name, description, completed):
+    self.name =  name
+    self.description =  description
+    self.completed = completed
+
+
+class ProjectSchema(ma.Schema):
+  class Meta:
+    fields = ('id', 'name', 'description', 'completed')
+
+product_schema = ProjectSchema()
+products_schema = ProjectSchema(many=True)
 
 class Actions(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -77,6 +90,10 @@ def create_user():
   return user_schema.jsonify(new_user)
 
 
+
+
+  
+
 @app.route('/api/users/auth', methods=['POST'])
 def get_auth():
   auth = request.authorization
@@ -95,6 +112,29 @@ def get_auth():
   return jsonify({'token' : token.decode('UTF-8')})
 
   return make_response('Could not Verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!!'})
+
+
+# create project
+@app.route('/api/projects', methods=['POST'])
+def create_project():
+  name = request.json['name']
+  description = request.json['description']
+  completed = request.json['completed']
+
+  new_project = Projects( name, description, completed) 
+  product = product_schema.load(request.json)
+
+  find_project = Projects.query.filter_by(name=product['name']).first()
+
+  if find_project:
+    raise ValidationError('project already exist...')
+
+  db.session.add(new_project)
+  db.session.commit()
+
+  return product_schema.jsonify(new_project)
+
+
 
 
 #Run server
