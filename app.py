@@ -43,7 +43,8 @@ class Projects(db.Model):
   name = db.Column(db.String(30), unique=True, nullable=False)
   description = db.Column(db.String(80), nullable=False )
   completed = db.Column(db.Boolean)
-  actions = db.relationship('Actions', backref='project')
+  # actions = db.relationship('Actions', backref=db.backref('projects', lazy=True))
+  actions = db.relationship('Actions', backref='projects', lazy=True)
 
   def __init__(self, name, description, completed):
     self.name =  name
@@ -62,12 +63,21 @@ class Actions(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   # check up o the foriegnkey thing
   project_id = db.Column(db.Integer,  db.ForeignKey('projects.id'), nullable=False)
+  # project = db.relationship('Projects', backref=db.backref('actions', lazy=True))
   description = db.Column(db.String, nullable=False)
   note = db.Column(db.String(120), nullable=False)
  
-class Actions_schema(ma.ModelSchema):
-    class Meta:
-        fields = ("id", "project_id","description","note")
+  def __init__(self, note, description):
+    self.note =  note
+    self.description =  description
+    
+class ActionSchema(ma.Schema):
+  class Meta:
+    fields = ('id', 'project_id' 'note', 'description')
+
+action_schema = ActionSchema()
+actions_schema = ActionSchema(many=True)
+
 
         
 #create a user
@@ -94,7 +104,30 @@ def create_user():
   return user_schema.jsonify(new_user)
 
 
+@app.route('/api/projects/<projectid>/actions', methods=['POST'])
+def create_action(projectid):
+  description = request.json['description']
+  note = request.json['note']
 
+  find_project = Projects.query.get(projectid)
+
+  if find_project.id != int(projectid):
+    raise ValidationError('error, id doesn\'t match!!!!!!')
+
+  new_action = Actions(description, note)
+  action = action_schema.load(request.json)
+  # find_project.join(new_action)
+  db.session.add(new_action)
+  # db.session.commit()
+
+
+  print(find_project)
+  print('hello world')
+  print(Projects.actions)
+  
+  
+
+  return action_schema.jsonify(new_action)
 
   
 
