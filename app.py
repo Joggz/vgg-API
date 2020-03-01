@@ -9,11 +9,11 @@ import os
 
 #init app
 app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 #DB
 app.config['SECRET_KEY'] = 'learning'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///debian.db' #+ os.path.join(basedir, 'db.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 #Init DB
@@ -234,7 +234,19 @@ def delete_profile(projectid):
 
   return project_schema.jsonify(project)
 
+@app.route('/api/projects/<int:projectid>/action', methods=['POST'])
+def post_action(projectid):
+  find_project = Projects.query.get_or_404(projectid)
 
+  action = action_schema.load(request.json)
+  description = action['description']
+  note = action['note']
+
+  new_action = Actions( note=note, description=description, project_id=projectid) 
+  
+  db.session.add(new_action)
+
+  return action_schema.jsonify(new_action)
 
 
 
