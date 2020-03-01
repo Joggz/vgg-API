@@ -65,7 +65,11 @@ class Actions(db.Model):
   description = db.Column(db.String, nullable=False)
   note = db.Column(db.String(120), nullable=False)
  
+class Actions_schema(ma.ModelSchema):
+    class Meta:
+        fields = ("id", "project_id","description","note")
 
+        
 #create a user
 
 @app.route('/api/user/register', methods=['POST'])
@@ -122,9 +126,9 @@ def create_project():
   completed = request.json['completed']
 
   new_project = Projects( name, description, completed) 
-  product = product_schema.load(request.json)
+  project = project_schema.load(request.json)
 
-  find_project = Projects.query.filter_by(name=product['name']).first()
+  find_project = Projects.query.filter_by(name=project['name']).first()
 
   if find_project:
     raise ValidationError('project already exist...')
@@ -132,7 +136,7 @@ def create_project():
   db.session.add(new_project)
   db.session.commit()
 
-  return product_schema.jsonify(new_project)
+  return project_schema.jsonify(new_project)
 
 
 # get all projects
@@ -148,7 +152,8 @@ def get_project(projectid):
   fetch_project = Projects.query.get(projectid)
 
   if not fetch_project:
-    raise ValidationError('User does not exist... please sign up!!!')
+    raise ValidationError('project does not exist... please add up!!!')
+
   return project_schema.jsonify(fetch_project)
 
 
